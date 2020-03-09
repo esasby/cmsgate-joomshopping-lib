@@ -15,8 +15,10 @@ use esas\cmsgate\view\admin\fields\ConfigFieldCheckbox;
 use esas\cmsgate\view\admin\fields\ConfigFieldFile;
 use esas\cmsgate\view\admin\fields\ConfigFieldList;
 use esas\cmsgate\view\admin\fields\ConfigFieldPassword;
+use esas\cmsgate\view\admin\fields\ConfigFieldRichtext;
 use esas\cmsgate\view\admin\fields\ConfigFieldTextarea;
 use esas\cmsgate\view\admin\fields\ListOption;
+use JHTML;
 
 defined('_JEXEC') or die();
 
@@ -37,11 +39,10 @@ class ConfigFormJoomshopping extends ConfigFormHtml
     }
 
 
-
     public function generate()
     {
         return
-            JHtml::_('bootstrap.addTab', ConfigFormsJoomshopping::tabsName(), $this->formKey, $this->headingTitle) .
+            JHTML::_('bootstrap.addTab', ConfigPageJoomshopping::tabsName(), $this->formKey, $this->headingTitle) .
             element::div(
                 attribute::clazz('col100'),
                 element::fieldset(
@@ -51,62 +52,63 @@ class ConfigFormJoomshopping extends ConfigFormHtml
                         attribute::width('100%'),
                         element::content(parent::generate())
                     )
-                )
+                ) .
+                element::br(),
+                $this->elementSubmitButtons()
             ) .
             element::div(
                 attribute::clazz('clr')
             ) .
-            JHtml::_('bootstrap.endTab');
+            JHTML::_('bootstrap.endTab');
     }
-
 
 
     function generateTextField(ConfigField $configField)
     {
         return
-            self::elementRow(
+            $this->elementRow(
                 $configField,
-                self::elementInput($configField, "text")
+                $this->elementInput($configField, "text")
             );
     }
 
     public function generatePasswordField(ConfigFieldPassword $configField)
     {
         return
-            self::elementRow(
+            $this->elementRow(
                 $configField,
-                self::elementInput($configField, "password")
+                $this->elementInput($configField, "password")
             );
     }
 
     function generateCheckboxField(ConfigFieldCheckbox $configField)
     {
         return
-            self::elementRow(
+            $this->elementRow(
                 $configField,
                 element::input(
                     attribute::clazz("form-control"),
-                    self::attributeInputName($configField),
+                    $this->attributeInputName($configField),
                     attribute::type("checkbox"),
                     attribute::checked($configField->isChecked()),
-                    attribute::value($configField->getValue())
+                    attribute::value("1")
                 )
             );
     }
 
-    private static function elementInput(ConfigField $configField, $type)
+    private function elementInput(ConfigField $configField, $type)
     {
         return
             element::input(
                 attribute::clazz("form-control"),
-                self::attributeInputName($configField),
-                self::attributeInputId($configField),
+                $this->attributeInputName($configField),
+                $this->attributeInputId($configField),
                 attribute::type($type),
                 attribute::value($configField->getValue())
             );
     }
 
-    private static function elementRow(ConfigField $configField, $thContent)
+    private function elementRow(ConfigField $configField, $thContent)
     {
         return
             element::div(
@@ -115,7 +117,7 @@ class ConfigFormJoomshopping extends ConfigFormHtml
                     attribute::clazz("span11 offset1"),
                     element::div(
                         attribute::clazz("form-group"),
-                        self::elementLabel($configField),
+                        $this->elementLabel($configField),
                         element::div(
                             attribute::clazz('span8'),
                             $thContent,
@@ -123,28 +125,33 @@ class ConfigFormJoomshopping extends ConfigFormHtml
                                 attribute::clazz("help-block"),
                                 element::content($configField->getDescription())
                             ),
-                            self::elementValidationError($configField)
+                            $this->elementValidationError($configField)
                         )
                     )
                 )
             );
     }
 
-    private static function attributeInputName(ConfigField $configField)
+
+    private function attributeInputName(ConfigField $configField)
     {
-        return attribute::name("pm_params[" . $configField->getKey() . "]");
+        // в joomshoppingв в аттрибуте name принято использовать pm_params[имя переменной], тогда срабатывает встроенный
+        // механизм сохранения настроекн, но в случае cmsgate сохранение настроек выполняется средствами ConfigWrapper-а
+        // (в том числе для валидации и отображения ошибок), поэтому pm_params не используется
+        return attribute::name($this->formKey . "[" . $configField->getKey() . "]");
     }
 
-    private static function attributeInputId(ConfigField $configField)
+    private function attributeInputId(ConfigField $configField)
     {
-        return attribute::id(self::createId($configField));
+        return attribute::id($this->createId($configField));
     }
 
-    private static function createId(ConfigField $configField) {
-        return "pm_params-" . $configField->getKey();
+    private function createId(ConfigField $configField)
+    {
+        return $this->formKey . "-" . $configField->getKey();
     }
 
-    private static function elementValidationError(ConfigField $configField)
+    private function elementValidationError(ConfigField $configField)
     {
         $validationResult = $configField->getValidationResult();
         if ($validationResult != null && !$validationResult->isValid())
@@ -157,38 +164,59 @@ class ConfigFormJoomshopping extends ConfigFormHtml
             return "";
     }
 
-    private static function elementLabel(ConfigField $configField)
+
+    private function elementLabel(ConfigField $configField)
     {
         return
             element::div(
                 attribute::clazz('span2'),
                 element::label(
-                    attribute::forr(self::createId($configField)),
-                    element::content($configField->getName())
+                    attribute::forr($this->createId($configField)),
+                    element::span( //fixme почему-то не работает
+                        attribute::clazz("hasTooltip"),
+                        attribute::data("original-title", $configField->getDescription()),
+                        element::content($configField->getName())
+                    )
                 )
             );
     }
 
     function generateTextAreaField(ConfigFieldTextarea $configField)
     {
-        $editor = \JFactory::getEditor();
-        return self::elementRow(
+        return $this->elementRow(
             $configField,
-            $editor->display(self::attributeInputName($configField), $configField->getValue(), '100%', '350', '75', '20')
+            element::textarea(
+                attribute::rows("3"),
+                attribute::cols("20"),
+                attribute::clazz("form-control"),
+                attribute::type("textarea"),
+                $this->attributeInputName($configField),
+                $this->attributeInputId($configField),
+//                attribute::style("max-width:80%;"),
+                element::content($configField->getValue())
+            )
         );
+    }
+
+    function generateRichtextField(ConfigFieldRichtext $configField)
+    {
+//        $editor = \JFactory::getEditor();
+//        return $this->elementRow(
+//            $configField,
+//            $editor->display($this->attributeInputName($configField), $configField->getValue(), '100%', '350', '75', '20')
+//        );
+        return $this->generateTextAreaField($configField);
     }
 
     public function generateFileField(ConfigFieldFile $configField)
     {
         return
-            self::elementRow(
+            $this->elementRow(
                 $configField,
                 element::input(
-                    element::input(
-                        attribute::type("file"),
-                        attribute::clazz("form-control"),
-                        attribute::name($configField->getKey())
-                    )
+                    attribute::type("file"),
+                    attribute::clazz("form-control"),
+                    attribute::name($configField->getKey())
                 ) .
                 element::p(
                     element::font(
@@ -203,12 +231,12 @@ class ConfigFormJoomshopping extends ConfigFormHtml
     function generateListField(ConfigFieldList $configField)
     {
         return
-            self::elementRow(
+            $this->elementRow(
                 $configField,
                 element::select(
                     attribute::clazz("inputbox"),
-                    attribute::name(self::attributeInputName($configField)),
-                    self::attributeInputId($configField),
+                    $this->attributeInputName($configField),
+                    $this->attributeInputId($configField),
                     parent::elementOptions($configField)
 //                   . JHTML::_('select.genericlist', $orders->getAllOrderStatus(), 'pm_params[' . $configField->getKey() . ']', 'class="inputbox" size="1"', 'status_id', 'name', $configField->getValue())
                 )
@@ -222,4 +250,38 @@ class ConfigFormJoomshopping extends ConfigFormHtml
     {
         return $this->orderStatuses;
     }
+
+    protected function elementSubmitButtons()
+    {
+        return
+            element::div(
+                attribute::clazz("row"),
+                element::div(
+                    attribute::clazz("span11 offset1"),
+                    element::div(
+                        attribute::clazz("form-group"),
+                        element::div(
+                            attribute::clazz('span2')
+                        ),
+                        element::div(
+                            attribute::clazz('span8'),
+                            parent::elementSubmitButtons()
+                        )
+                    )
+                )
+            );
+    }
+
+    protected function elementInputSubmit($name, $value)
+    {
+        return
+            element::input(
+                attribute::type("submit"),
+                attribute::clazz("btn btn-small"),
+                attribute::onclick("Joomla.submitbutton('apply');"),
+                attribute::name($name),
+                attribute::value($value)
+            );
+    }
+
 }

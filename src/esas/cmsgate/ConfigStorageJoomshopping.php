@@ -10,10 +10,12 @@ namespace esas\cmsgate;
 
 use Exception;
 use JSFactory;
+use parseString;
 
 class ConfigStorageJoomshopping extends ConfigStorageCms
 {
     private $settings;
+    private $pm_method;
 
     /**
      * ConfigurationWrapperOpencart constructor.
@@ -22,10 +24,9 @@ class ConfigStorageJoomshopping extends ConfigStorageCms
     public function __construct()
     {
         parent::__construct();
-        $pm_method = JSFactory::getTable('paymentMethod', 'jshop');
-//        $pm_method->loadFromClass(pm_hg::MODULE_MACHINE_NAME);
-        $pm_method->loadFromClass(Registry::getRegistry()->getPaySystemName());
-        $this->settings = $pm_method->getConfigs();
+        $this->pm_method = JSFactory::getTable('paymentMethod', 'jshop');
+        $this->pm_method->loadFromClass(Registry::getRegistry()->getPaySystemName());
+        $this->settings = $this->pm_method->getConfigs();
     }
 
 
@@ -61,6 +62,8 @@ class ConfigStorageJoomshopping extends ConfigStorageCms
     public function saveConfig($key, $value)
     {
         $this->settings[$key] = $value;
-        //todo save to DB
+        $parseString = new parseString($this->settings);
+        $this->pm_method->payment_params = $parseString->splitParamsToString();
+        $this->pm_method->store();
     }
 }

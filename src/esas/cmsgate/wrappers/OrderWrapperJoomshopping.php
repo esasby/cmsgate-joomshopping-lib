@@ -8,9 +8,9 @@
 
 namespace esas\cmsgate\wrappers;
 
-use bgpb\cmsgate\RegistryBGPBWoo;
 use JSFactory;
 use Throwable;
+use \JFactory;
 
 class OrderWrapperJoomshopping extends OrderSafeWrapper
 {
@@ -22,7 +22,6 @@ class OrderWrapperJoomshopping extends OrderSafeWrapper
     public function __construct($order_id)
     {
         parent::__construct();
-//        $this->order = JSFactory::getModel("hutkigrosh")->getOrderByOrderNumber($orderNumber);
         $this->order = JSFactory::getTable('order', 'jshop');
         $this->order->load($order_id);
     }
@@ -160,13 +159,14 @@ class OrderWrapperJoomshopping extends OrderSafeWrapper
 
     /**
      * Сохраняет привязку billid к заказу
-     * @param $billId
+     * @param $extId
      * @return mixed
      * @throws Throwable
      */
-    public function saveExtId($billId)
+    public function saveExtId($extId)
     {
-        //не используется, т.к привязка  сохраняется на уровне самой CMS
+        $this->order->transaction = $extId;
+        $this->order->store();
     }
 
 

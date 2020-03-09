@@ -17,6 +17,7 @@ use esas\cmsgate\view\admin\fields\ConfigFieldList;
 use esas\cmsgate\view\admin\fields\ConfigFieldPassword;
 use esas\cmsgate\view\admin\fields\ConfigFieldTextarea;
 use esas\cmsgate\view\admin\fields\ListOption;
+use \JHTML;
 
 defined('_JEXEC') or die();
 

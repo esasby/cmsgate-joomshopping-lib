@@ -11,33 +11,11 @@ namespace esas\cmsgate\view\admin;
 use esas\cmsgate\Registry;
 use esas\cmsgate\utils\htmlbuilder\Attributes as attribute;
 use esas\cmsgate\utils\htmlbuilder\Elements as element;
+use \JHTML;
 
-class ConfigFormsJoomshopping
+class ConfigPageJoomshopping extends ConfigPage
 {
-    /**
-     * @var ConfigFormJoomshopping[]
-     */
-    private $configFormsArray;
-
-    /**
-     * ConfigFormsJoomshopping constructor.
-     * @param ConfigFormJoomshopping[] $configFormsArray
-     */
-    public function __construct(array $configFormsArray = null)
-    {
-        $this->configFormsArray = $configFormsArray;
-    }
-
-    /**
-     * @param $configForm
-     * @return $this
-     */
-    public function addForm($configForm) {
-        $this->configFormsArray[] = $configForm;
-        return $this;
-    }
-
-    public function generate()
+       public function generate()
     {
         return
             element::div(
@@ -56,11 +34,11 @@ class ConfigFormsJoomshopping
     {
         if (count($this->configFormsArray) == 1)
             return $this->configFormsArray[0]->generate();
-        $ret = JHtml::_('bootstrap.startTabSet', self::tabsName(), array('active' => 'kassa-tab')); //fixme
+        $ret = JHTML::_('bootstrap.startTabSet', self::tabsName(), array('active' => $this->configFormsArray[0]->getFormKey()));
         foreach ($this->configFormsArray as $configForm) {
             $ret .= $configForm->generate();
         }
-        $ret .= JHtml::_('bootstrap.endTabSet');
+        $ret .= JHTML::_('bootstrap.endTabSet');
         return $ret;
     }
 
