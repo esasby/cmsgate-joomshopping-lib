@@ -26,7 +26,11 @@ class ConfigStorageJoomshopping extends ConfigStorageCms
         parent::__construct();
         $this->pm_method = JSFactory::getTable('paymentMethod', 'jshop');
         $this->pm_method->loadFromClass(Registry::getRegistry()->getPaySystemName());
-        $this->settings = $this->pm_method->getConfigs();
+        $dbSettings = $this->pm_method->getConfigs();
+        if (is_array($dbSettings))
+            $this->settings = $dbSettings;
+        else // если это превая конфигурация модуля, то в БД будет пусто
+            $this->settings = array();
     }
 
 
