@@ -19,4 +19,8 @@ class LocaleLoaderJoomshopping extends LocaleLoaderCms
     }
 
 
+    public function getCmsVocabularyDir()
+    {
+        return dirname(__FILE__);
+    }
 }

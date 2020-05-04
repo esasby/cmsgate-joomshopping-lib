@@ -8,6 +8,7 @@
 
 namespace esas\cmsgate;
 
+use esas\cmsgate\wrappers\SystemSettingsWrapperJoomshopping;
 use Exception;
 use JSFactory;
 use parseString;
@@ -25,7 +26,7 @@ class ConfigStorageJoomshopping extends ConfigStorageCms
     {
         parent::__construct();
         $this->pm_method = JSFactory::getTable('paymentMethod', 'jshop');
-        $this->pm_method->loadFromClass(Registry::getRegistry()->getPaySystemName());
+        $this->pm_method->loadFromClass(SystemSettingsWrapperJoomshopping::getPaymentCode());
         $dbSettings = $this->pm_method->getConfigs();
         if (is_array($dbSettings))
             $this->settings = $dbSettings;
