@@ -2,7 +2,6 @@
 
 namespace esas\cmsgate\joomshopping;
 
-use JSFactory;
 use \JModelLegacy;
 use \JFactory;
 
@@ -14,7 +13,7 @@ class CmsgateModel extends JModelLegacy
      * @param $transaction
      * @return order
      */
-    public static function getOrderByTrxId($transaction)
+    public static function getOrderIdByTrxId($transaction)
     {
         $db = JFactory::getDBO();
         $query = "SELECT order_id FROM `#__jshopping_orders` WHERE transaction = '" . $db->escape($transaction) . "' ORDER BY order_id DESC";
@@ -24,9 +23,7 @@ class CmsgateModel extends JModelLegacy
             saveToLog("payment.log", 'Can not load order by transaction[' . $transaction . "]");
             return null;
         }
-        $order = JSFactory::getTable('order', 'jshop');
-        $order->load($rows[0]->order_id);
-        return $order;
+        return $rows[0]->order_id;
     }
 
     /**
@@ -42,13 +39,12 @@ class CmsgateModel extends JModelLegacy
         return $rows[0]->order_id;
     }
 
-
     /**
      * Получаем из БД заказ по order_number
      * @param $order_number
      * @return order
      */
-    public static function getOrderByOrderNumber($order_number)
+    public static function getOrderIdByOrderNumber($order_number)
     {
         $db = JFactory::getDBO();
         $query = "SELECT order_id FROM `#__jshopping_orders` WHERE order_number = '" . $db->escape($order_number) . "' ORDER BY order_id DESC";
@@ -58,8 +54,6 @@ class CmsgateModel extends JModelLegacy
             saveToLog("payment.log", 'Can not load order by order_number[' . $order_number . "]");
             return null;
         }
-        $order = JSFactory::getTable('order', 'jshop');
-        $order->load($rows[0]->order_id);
-        return $order;
+        return $rows[0]->order_id;
     }
 }

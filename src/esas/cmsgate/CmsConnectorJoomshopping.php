@@ -15,6 +15,7 @@ use esas\cmsgate\view\admin\ConfigFormJoomshopping;
 use esas\cmsgate\wrappers\OrderWrapper;
 use esas\cmsgate\wrappers\OrderWrapperJoomshopping;
 use esas\cmsgate\wrappers\SystemSettingsWrapperJoomshopping;
+use \JSFactory;
 
 class CmsConnectorJoomshopping extends CmsConnector
 {
@@ -54,13 +55,13 @@ class CmsConnectorJoomshopping extends CmsConnector
 
     public function createOrderWrapperByOrderNumber($orderNumber)
     {
-        $orderId = JSFactory::getModel(Registry::getRegistry()->getPaySystemName())->getOrderByOrderNumber();
+        $orderId = JSFactory::getModel(Registry::getRegistry()->getPaySystemName())->getOrderIdByOrderNumber($orderNumber);
         return $this->createOrderWrapperByOrderId($orderId);
     }
     
     public function createOrderWrapperByExtId($extId)
     {
-        $orderId = JSFactory::getModel(Registry::getRegistry()->getPaySystemName())->getOrderByTrxId();
+        $orderId = JSFactory::getModel(Registry::getRegistry()->getPaySystemName())->getOrderIdByTrxId($extId);
         return $this->createOrderWrapperByOrderId($orderId);
     }
 

@@ -26,6 +26,14 @@ class OrderWrapperJoomshopping extends OrderSafeWrapper
         $this->order->load($order_id);
     }
 
+    /**
+     * @return mixed
+     */
+    public function getJOrder()
+    {
+        return $this->order;
+    }
+  
 
     /**
      * Уникальный номер заказ в рамках CMS
