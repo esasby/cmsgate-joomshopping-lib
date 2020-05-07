@@ -10,15 +10,11 @@ namespace esas\cmsgate;
 
 
 use esas\cmsgate\lang\LocaleLoaderJoomshopping;
-use esas\cmsgate\opencart\ModelExtensionPayment;
 use esas\cmsgate\view\admin\AdminViewFields;
-use esas\cmsgate\view\admin\AdminViewFieldsOpencart;
 use esas\cmsgate\view\admin\ConfigFormJoomshopping;
-use esas\cmsgate\view\admin\ConfigFormOpencart;
 use esas\cmsgate\wrappers\OrderWrapper;
 use esas\cmsgate\wrappers\OrderWrapperJoomshopping;
 use esas\cmsgate\wrappers\SystemSettingsWrapperJoomshopping;
-use esas\cmsgate\wrappers\SystemSettingsWrapperOpencart;
 
 class CmsConnectorJoomshopping extends CmsConnector
 {
@@ -32,7 +28,6 @@ class CmsConnectorJoomshopping extends CmsConnector
         $configForm->addSubmitButton(AdminViewFields::CONFIG_FORM_BUTTON_SAVE);
         $configForm->addSubmitButton(AdminViewFields::CONFIG_FORM_BUTTON_DOWNLOAD_LOG);
         $configForm->addSubmitButton(AdminViewFields::CONFIG_FORM_BUTTON_CANCEL);
-        $configForm->addCmsManagedFields();
         return $configForm;
     }
 

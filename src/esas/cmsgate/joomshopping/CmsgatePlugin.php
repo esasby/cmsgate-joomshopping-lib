@@ -1,11 +1,10 @@
 <?php
-use bgpb\cmsgate\ConfigFieldsBGPB;
-use bgpb\cmsgate\controllers\ControllerBGPBGenerateKey;
-use bgpb\cmsgate\controllers\ControllerBGPBSendSslRequest;
-use bgpb\cmsgate\RegistryHutkigroshJoomshopping;
-use bgpb\cmsgate\utils\RequestParamsBGPB;
+namespace esas\cmsgate\joomshopping;
+
 use esas\cmsgate\utils\SessionUtils;
 use esas\cmsgate\view\admin\ConfigFormJoomshopping;
+use JPlugin;
+use JFactory;
 
 defined('_JEXEC') or die;
 
@@ -14,6 +13,7 @@ class CmsgatePlugin extends JPlugin
     /**
      * @param ConfigFormJoomshopping $configForm
      * @throws Throwable
+     * @throws \Throwable
      */
     protected function saveOrRedirect($configForm)
     {

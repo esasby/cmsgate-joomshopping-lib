@@ -8,6 +8,8 @@
 
 namespace esas\cmsgate;
 
+use esas\cmsgate\view\admin\fields\ConfigFieldRichtext;
+use esas\cmsgate\view\admin\fields\ConfigFieldTextarea;
 use esas\cmsgate\wrappers\SystemSettingsWrapperJoomshopping;
 use Exception;
 use JSFactory;
@@ -42,11 +44,24 @@ class ConfigStorageJoomshopping extends ConfigStorageCms
      */
     public function getConfig($key)
     {
-        if (array_key_exists($key, $this->settings))
-            return $this->settings[$key];
-        else
-            return "";
+        $configField = Registry::getRegistry()->getManagedFieldsFactory()->getFieldByKey($key);
+        if ($configField instanceof ConfigFieldTextarea || $configField instanceof ConfigFieldRichtext) {
+            $statictext = JSFactory::getTable("statictext", "jshop");
+            $rowstatictext = $statictext->loadData(self::staticAliasName($key));
+            return $rowstatictext->text;
+        } else {
+            if (array_key_exists($key, $this->settings))
+                return $this->settings[$key];
+            else
+                return "";
+        }
     }
+
+    private static function staticAliasName($key)
+    {
+        return Registry::getRegistry()->getPaySystemName() . '_' . $key;
+    }
+
 
     /**
      * @param $cmsConfigValue
@@ -58,17 +73,26 @@ class ConfigStorageJoomshopping extends ConfigStorageCms
         return $cmsConfigValue == '1' || $cmsConfigValue == "true";
     }
 
-    /**
-     * Сохранение значения свойства в харнилища настроек конкретной CMS.
-     *
-     * @param string $key
-     * @throws Exception
-     */
     public function saveConfig($key, $value)
     {
-        $this->settings[$key] = $value;
-        $parseString = new parseString($this->settings);
-        $this->pm_method->payment_params = $parseString->splitParamsToString();
-        $this->pm_method->store();
+        $configFieldType = Registry::getRegistry()->getManagedFieldsFactory()->getFieldByKey($key);
+        if ($configFieldType instanceof ConfigFieldTextarea || $configFieldType instanceof ConfigFieldRichtext) {
+            $languagesModel = JSFactory::getModel("languages");
+            foreach ($languagesModel->getAllLanguages(1) as $lang) {
+                //todo HGCMS-13
+                $bind["text_" . $lang->language] = $value;
+            }
+            $statictext = JSFactory::getTable("statictext", "jshop");
+            $statictext->load(["alias" => self::staticAliasName($key)]);
+            if ($statictext->id == null) // на случай, если в БД еще нет такой записи
+                $bind["alias"] = self::staticAliasName($key);
+            $statictext->bind($bind);
+            $statictext->store();
+        } else {
+            $this->settings[$key] = $value;
+            $parseString = new parseString($this->settings);
+            $this->pm_method->payment_params = $parseString->splitParamsToString();
+            $this->pm_method->store();
+        }
     }
-}
+    }

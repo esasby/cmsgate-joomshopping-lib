@@ -8,12 +8,15 @@
 
 namespace esas\cmsgate\joomshopping;
 
-require_once(dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))) . '/init.php');
-
 use esas\cmsgate\ConfigFields;
 use esas\cmsgate\Registry;
 use esas\cmsgate\wrappers\SystemSettingsWrapperJoomshopping;
 use Exception;
+use JFactory;
+use JFolder;
+use JFile;
+use stdClass;
+use JSFactory;
 
 class InstallUtilsJoomshopping
 {
@@ -86,7 +89,7 @@ class InstallUtilsJoomshopping
         $query->where($db->quoteName('element') . ' = ' . $db->quote(Registry::getRegistry()->getPaySystemName()));
         $query->where($db->quoteName('type') . ' = ' . $db->quote('plugin'));
         $db->setQuery($query);
-        if ($db->execute())
+        if (!$db->execute())
             throw new Exception('Can not activate plugin');
 
     }

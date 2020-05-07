@@ -121,10 +121,10 @@ class ConfigFormJoomshopping extends ConfigFormHtml
                         element::div(
                             attribute::clazz('span8'),
                             $thContent,
-                            element::p(
-                                attribute::clazz("help-block"),
-                                element::content($configField->getDescription())
-                            ),
+//                            element::p(
+//                                attribute::clazz("help-block"),
+//                                element::content($configField->getDescription())
+//                            ),
                             $this->elementValidationError($configField)
                         )
                     )

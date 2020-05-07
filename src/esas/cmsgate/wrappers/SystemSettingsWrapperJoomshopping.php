@@ -10,7 +10,7 @@ namespace esas\cmsgate\wrappers;
 
 
 use esas\cmsgate\Registry;
-use esas\cmsgate\utils\OpencartVersion;
+use Joomla\CMS\Uri\Uri;
 
 class SystemSettingsWrapperJoomshopping extends SystemSettingsWrapper
 {
