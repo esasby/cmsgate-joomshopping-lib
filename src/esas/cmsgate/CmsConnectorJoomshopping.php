@@ -9,6 +9,9 @@
 namespace esas\cmsgate;
 
 
+use esas\cmsgate\descriptors\CmsConnectorDescriptor;
+use esas\cmsgate\descriptors\VendorDescriptor;
+use esas\cmsgate\descriptors\VersionDescriptor;
 use esas\cmsgate\lang\LocaleLoaderJoomshopping;
 use esas\cmsgate\view\admin\AdminViewFields;
 use esas\cmsgate\view\admin\ConfigFormJoomshopping;
@@ -73,5 +76,20 @@ class CmsConnectorJoomshopping extends CmsConnector
     public function createLocaleLoader()
     {
         return new LocaleLoaderJoomshopping();
+    }
+
+    public function createCmsConnectorDescriptor()
+    {
+        return new CmsConnectorDescriptor(
+            "cmsgate-joomshopping-lib",
+            new VersionDescriptor(
+                "v1.10.0",
+                "2020-06-03"
+            ),
+            "Cmsgate Joomshopping connector",
+            "https://bitbucket.esas.by/projects/CG/repos/cmsgate-joomshopping-lib/browse",
+            VendorDescriptor::esas(),
+            "joomshopping"
+        );
     }
 }
