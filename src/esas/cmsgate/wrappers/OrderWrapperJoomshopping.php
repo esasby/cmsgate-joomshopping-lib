@@ -148,8 +148,7 @@ class OrderWrapperJoomshopping extends OrderSafeWrapper
      */
     public function getStatusUnsafe()
     {
-        //TODO
-//        return $this->order->get('status');
+        return $this->order->order_status;
     }
 
     /**
@@ -160,6 +159,7 @@ class OrderWrapperJoomshopping extends OrderSafeWrapper
      */
     public function updateStatus($newStatus)
     {
+        $this->order->order_status = $newStatus;
         $model = JSFactory::getModel('orderChangeStatus', 'jshop');
         $model->setData($this->getOrderId(), $newStatus, 0); //тут можно включить sendmail
         $model->store();
