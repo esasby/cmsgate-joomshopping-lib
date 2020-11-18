@@ -187,4 +187,9 @@ class OrderWrapperJoomshopping extends OrderSafeWrapper
     {
         return JFactory::getUser()->id;
     }
+
+    public function getShippingAmountUnsafe()
+    {
+        return 0;
+    }
 }

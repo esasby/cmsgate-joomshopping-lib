@@ -83,8 +83,8 @@ class CmsConnectorJoomshopping extends CmsConnector
         return new CmsConnectorDescriptor(
             "cmsgate-joomshopping-lib",
             new VersionDescriptor(
-                "v1.11.0",
-                "2020-06-05"
+                "v1.13.0",
+                "2020-11-18"
             ),
             "Cmsgate Joomshopping connector",
             "https://bitbucket.esas.by/projects/CG/repos/cmsgate-joomshopping-lib/browse",
