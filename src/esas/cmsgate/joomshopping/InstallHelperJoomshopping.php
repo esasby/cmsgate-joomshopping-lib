@@ -9,44 +9,26 @@
 namespace esas\cmsgate\joomshopping;
 
 use esas\cmsgate\ConfigFields;
+use esas\cmsgate\joomla\InstallHelperJoomla;
 use esas\cmsgate\Registry;
 use esas\cmsgate\wrappers\SystemSettingsWrapperJoomshopping;
 use Exception;
 use JFactory;
 use JFolder;
 use JFile;
+use Joomla\CMS\Factory;
 use stdClass;
 use JSFactory;
 
-class InstallUtilsJoomshopping
+class InstallHelperJoomshopping extends InstallHelperJoomla
 {
     /**
-     * @param $paySystemName
      * @throws Exception
      */
-    public static function preInstall($paySystemName) {
-        //вручную копируем файлы из временной папки, в папку components, иначе не сработают require_once
-        $pmPath = JPATH_SITE . '/plugins/jshopping/' . $paySystemName . '/components';
-        $newPath = JPATH_SITE . '/components';
-        if (!JFolder::copy($pmPath, $newPath, "", true)) {
-            throw new Exception('Can not copy folder from[' . $pmPath . '] to [' . $newPath . ']');
-        }
-        self::req($paySystemName);
-    }
-
-    public static function req($paySystemName)
-    {
-        require_once(PATH_JSHOPPING . 'lib/factory.php');
-        require_once(PATH_JSHOPPING . 'payments/pm_' . $paySystemName . '/init.php');
-    }
-
-    /**
-     * @throws Exception
-     */
-    public static function dbAddPaymentMethod()
+    public static function dbPaymentMethodAdd()
     {
         $payment_code = SystemSettingsWrapperJoomshopping::getPaymentCode();
-        $db = JFactory::getDBO();
+        $db = Factory::getDBO();
         $query = "SELECT * FROM `#__jshopping_payment_method` WHERE payment_code = '" . $payment_code . "'";
         $db->setQuery($query);
         $rows = $db->loadObjectList();
@@ -80,23 +62,9 @@ class InstallUtilsJoomshopping
             throw new Exception('Can not add new payment method');
     }
 
-    public static function dbActivatePlugin()
+    public static function dbPaymentMethodDelete()
     {
-        $db = JFactory::getDbo();
-        $query = $db->getQuery(true);
-        $query->update('#__extensions');
-        $query->set($db->quoteName('enabled') . ' = 1');
-        $query->where($db->quoteName('element') . ' = ' . $db->quote(Registry::getRegistry()->getPaySystemName()));
-        $query->where($db->quoteName('type') . ' = ' . $db->quote('plugin'));
-        $db->setQuery($query);
-        if (!$db->execute())
-            throw new Exception('Can not activate plugin');
-
-    }
-
-    public static function dbDeletePaymentMethod()
-    {
-        $db = JFactory::getDbo();
+        $db = Factory::getDbo();
         $query = $db->getQuery(true);
         $conditions = array(
             $db->quoteName('payment_code') . ' = ' . $db->quote(SystemSettingsWrapperJoomshopping::getPaymentCode())
@@ -109,27 +77,38 @@ class InstallUtilsJoomshopping
     }
 
     public static function deleteFiles() {
-        $ret = true;
-        $ret = $ret && self::deleteWithLogging(PATH_JSHOPPING . 'models/' . Registry::getRegistry()->getPaySystemName());
-        $ret = $ret && self::deleteWithLogging(PATH_JSHOPPING . 'controllers/' . Registry::getRegistry()->getPaySystemName());
-        $ret = $ret && self::deleteWithLogging(PATH_JSHOPPING . 'payments/' . SystemSettingsWrapperJoomshopping::getPaymentCode());
-        return $ret;
+        $ret1 = self::deleteWithLogging(PATH_JSHOPPING . 'models/' . Registry::getRegistry()->getPaySystemName());
+        $ret2 = self::deleteWithLogging(PATH_JSHOPPING . 'controllers/' . Registry::getRegistry()->getPaySystemName());
+        $ret3 = self::deleteWithLogging(PATH_JSHOPPING . 'payments/' . SystemSettingsWrapperJoomshopping::getPaymentCode());
+        $ret4 = self::deleteWithLogging(PATH_JSHOPPING_ADMINISTRATOR . 'models/' . Registry::getRegistry()->getPaySystemName());
+        $ret5 = self::deleteWithLogging(PATH_JSHOPPING_ADMINISTRATOR . 'controllers/' . Registry::getRegistry()->getPaySystemName());
+        return $ret1 && $ret2 && $ret3 && $ret4 && $ret5;
     }
 
-
-    public static function deleteWithLogging($file)
+    public static function dbCompletionTextAdd($configField)
     {
-        $result = true;
-        if (is_dir($file)) {
-            JFolder::delete($file);
-            $deleted = !JFolder::exists($file);
-        } else
-            $deleted = JFile::delete($file);
-        if (!$deleted) {
-            $result = false;
-            echo JText::sprintf('JLIB_INSTALLER_ERROR_FILE_FOLDER', $file) . '<br />';;
+        $staticText = new stdClass();
+        $staticText->alias = $configField;
+        $staticText->use_for_return_policy = 0;
+        $jshoppingLanguages = JSFactory::getTable('language', 'jshop');
+        foreach ($jshoppingLanguages::getAllLanguages() as $lang) {
+            $i18nField = 'text_' . $lang->language;
+            $staticText->$i18nField = Registry::getRegistry()->getTranslator()->getConfigFieldDefault($configField, $lang->language);
         }
-        return $result;
+        return Factory::getDbo()->insertObject('#__jshopping_config_statictext', $staticText);
     }
 
+    public static function dbCompletionTextDelete($configField)
+    {
+        $db = Factory::getDbo();
+        $query = $db->getQuery(true);
+        $conditions = array(
+            $db->quoteName('alias') . ' = ' . $db->quote($configField)
+        );
+        $query->delete($db->quoteName('#__jshopping_config_statictext'));
+        $query->where($conditions);
+
+        $db->setQuery($query);
+        return $db->execute();
+    }
 }
