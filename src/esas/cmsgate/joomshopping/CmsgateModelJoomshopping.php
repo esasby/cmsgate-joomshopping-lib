@@ -2,10 +2,10 @@
 
 namespace esas\cmsgate\joomshopping;
 
-use \JModelLegacy;
-use \JFactory;
+use esas\cmsgate\joomla\CmsgateModelJoomla;
+use Joomla\CMS\Factory;
 
-class CmsgateModel extends JModelLegacy
+class CmsgateModelJoomshopping extends CmsgateModelJoomla
 {
 
     /**
@@ -15,7 +15,7 @@ class CmsgateModel extends JModelLegacy
      */
     public static function getOrderIdByTrxId($transaction)
     {
-        $db = JFactory::getDBO();
+        $db = Factory::getDBO();
         $query = "SELECT order_id FROM `#__jshopping_orders` WHERE transaction = '" . $db->escape($transaction) . "' ORDER BY order_id DESC";
         $db->setQuery($query);
         $rows = $db->loadObjectList();
@@ -32,7 +32,7 @@ class CmsgateModel extends JModelLegacy
      */
     public static function getCurrentOrderId()
     {
-        $db = JFactory::getDBO();
+        $db = Factory::getDBO();
         $query = "SELECT order_id FROM `#__jshopping_orders` WHERE user_id = '" . $db->escape(JFactory::getUser()->id) . "' ORDER BY order_id DESC LIMIT 1";
         $db->setQuery($query);
         $rows = $db->loadObjectList();
@@ -46,7 +46,7 @@ class CmsgateModel extends JModelLegacy
      */
     public static function getOrderIdByOrderNumber($order_number)
     {
-        $db = JFactory::getDBO();
+        $db = Factory::getDBO();
         $query = "SELECT order_id FROM `#__jshopping_orders` WHERE order_number = '" . $db->escape($order_number) . "' ORDER BY order_id DESC";
         $db->setQuery($query);
         $rows = $db->loadObjectList();

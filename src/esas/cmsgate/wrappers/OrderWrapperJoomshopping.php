@@ -7,10 +7,11 @@
  */
 
 namespace esas\cmsgate\wrappers;
+if (!class_exists( 'JSFactory' )) require_once(PATH_JSHOPPING . 'lib/factory.php'); // для использование JSFactory
 
+use Joomla\CMS\Factory;
 use JSFactory;
 use Throwable;
-use \JFactory;
 
 class OrderWrapperJoomshopping extends OrderSafeWrapper
 {
@@ -185,7 +186,7 @@ class OrderWrapperJoomshopping extends OrderSafeWrapper
      */
     public function getClientIdUnsafe()
     {
-        return JFactory::getUser()->id;
+        return Factory::getUser()->id;
     }
 
     public function getShippingAmountUnsafe()

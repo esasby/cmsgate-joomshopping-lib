@@ -8,9 +8,9 @@
 
 namespace esas\cmsgate;
 
+if (!class_exists( 'JSFactory' )) require_once(PATH_JSHOPPING . 'lib/factory.php');
 use esas\cmsgate\view\admin\fields\ConfigFieldRichtext;
 use esas\cmsgate\view\admin\fields\ConfigFieldTextarea;
-use esas\cmsgate\wrappers\SystemSettingsWrapperJoomshopping;
 use Exception;
 use JSFactory;
 use parseString;
@@ -28,7 +28,7 @@ class ConfigStorageJoomshopping extends ConfigStorageCms
     {
         parent::__construct();
         $this->pm_method = JSFactory::getTable('paymentMethod', 'jshop');
-        $this->pm_method->loadFromClass(SystemSettingsWrapperJoomshopping::getPaymentCode());
+        $this->pm_method->loadFromClass(CmsConnectorJoomshopping::getPaymentCode());
         $dbSettings = $this->pm_method->getConfigs();
         if (is_array($dbSettings))
             $this->settings = $dbSettings;
@@ -57,7 +57,7 @@ class ConfigStorageJoomshopping extends ConfigStorageCms
         }
     }
 
-    private static function staticAliasName($key)
+    public static function staticAliasName($key)
     {
         return Registry::getRegistry()->getPaySystemName() . '_' . $key;
     }

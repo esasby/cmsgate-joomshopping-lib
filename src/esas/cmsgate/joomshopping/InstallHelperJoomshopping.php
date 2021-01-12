@@ -8,17 +8,15 @@
 
 namespace esas\cmsgate\joomshopping;
 
+use esas\cmsgate\CmsConnectorJoomshopping;
 use esas\cmsgate\ConfigFields;
+use esas\cmsgate\ConfigStorageJoomshopping;
 use esas\cmsgate\joomla\InstallHelperJoomla;
 use esas\cmsgate\Registry;
-use esas\cmsgate\wrappers\SystemSettingsWrapperJoomshopping;
 use Exception;
-use JFactory;
-use JFolder;
-use JFile;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\LanguageHelper;
 use stdClass;
-use JSFactory;
 
 class InstallHelperJoomshopping extends InstallHelperJoomla
 {
@@ -27,7 +25,7 @@ class InstallHelperJoomshopping extends InstallHelperJoomla
      */
     public static function dbPaymentMethodAdd()
     {
-        $payment_code = SystemSettingsWrapperJoomshopping::getPaymentCode();
+        $payment_code = CmsConnectorJoomshopping::getPaymentCode();
         $db = Factory::getDBO();
         $query = "SELECT * FROM `#__jshopping_payment_method` WHERE payment_code = '" . $payment_code . "'";
         $db->setQuery($query);
@@ -51,14 +49,14 @@ class InstallHelperJoomshopping extends InstallHelperJoomla
         $paymentMethod->order_description = '';
         $paymentMethod->order_description = '';
         // без этих полей не добавляется запись в БД
-        $jshoppingLanguages = JSFactory::getTable('language', 'jshop');
-        foreach ($jshoppingLanguages::getAllLanguages() as $lang) {
-            $i18nField = 'name_' . $lang->language;
-            $paymentMethod->$i18nField = Registry::getRegistry()->getTranslator()->getConfigFieldDefault(ConfigFields::paymentMethodName(), $lang->language);
-            $i18nField = 'description_' . $lang->language;
-            $paymentMethod->$i18nField = Registry::getRegistry()->getTranslator()->getConfigFieldDefault(ConfigFields::paymentMethodDetails(), $lang->language);
+        foreach (LanguageHelper::getLanguages() as $lang) {
+            $langCodeFormatted = self::convertLangCodeToCmsgateFormat($lang->lang_code);
+            $i18nField = 'name_' . $lang->lang_code;
+            $paymentMethod->$i18nField = Registry::getRegistry()->getTranslator()->getConfigFieldDefault(ConfigFields::paymentMethodName(), $langCodeFormatted);
+            $i18nField = 'description_' . $lang->lang_code;
+            $paymentMethod->$i18nField = Registry::getRegistry()->getTranslator()->getConfigFieldDefault(ConfigFields::paymentMethodDetails(), $langCodeFormatted);
         }
-        if (!JFactory::getDbo()->insertObject('#__jshopping_payment_method', $paymentMethod))
+        if (!Factory::getDbo()->insertObject('#__jshopping_payment_method', $paymentMethod))
             throw new Exception('Can not add new payment method');
     }
 
@@ -67,7 +65,7 @@ class InstallHelperJoomshopping extends InstallHelperJoomla
         $db = Factory::getDbo();
         $query = $db->getQuery(true);
         $conditions = array(
-            $db->quoteName('payment_code') . ' = ' . $db->quote(SystemSettingsWrapperJoomshopping::getPaymentCode())
+            $db->quoteName('payment_code') . ' = ' . $db->quote(CmsConnectorJoomshopping::getPaymentCode())
         );
         $query->delete($db->quoteName('#__jshopping_payment_method'));
         $query->where($conditions);
@@ -76,10 +74,11 @@ class InstallHelperJoomshopping extends InstallHelperJoomla
         return $db->execute();
     }
 
-    public static function deleteFiles() {
+    public static function deleteFiles()
+    {
         $ret1 = self::deleteWithLogging(PATH_JSHOPPING . 'models/' . Registry::getRegistry()->getPaySystemName());
         $ret2 = self::deleteWithLogging(PATH_JSHOPPING . 'controllers/' . Registry::getRegistry()->getPaySystemName());
-        $ret3 = self::deleteWithLogging(PATH_JSHOPPING . 'payments/' . SystemSettingsWrapperJoomshopping::getPaymentCode());
+        $ret3 = self::deleteWithLogging(PATH_JSHOPPING . 'payments/' . CmsConnectorJoomshopping::getPaymentCode());
         $ret4 = self::deleteWithLogging(PATH_JSHOPPING_ADMINISTRATOR . 'models/' . Registry::getRegistry()->getPaySystemName());
         $ret5 = self::deleteWithLogging(PATH_JSHOPPING_ADMINISTRATOR . 'controllers/' . Registry::getRegistry()->getPaySystemName());
         return $ret1 && $ret2 && $ret3 && $ret4 && $ret5;
@@ -88,12 +87,11 @@ class InstallHelperJoomshopping extends InstallHelperJoomla
     public static function dbCompletionTextAdd($configField)
     {
         $staticText = new stdClass();
-        $staticText->alias = $configField;
+        $staticText->alias = ConfigStorageJoomshopping::staticAliasName($configField);
         $staticText->use_for_return_policy = 0;
-        $jshoppingLanguages = JSFactory::getTable('language', 'jshop');
-        foreach ($jshoppingLanguages::getAllLanguages() as $lang) {
-            $i18nField = 'text_' . $lang->language;
-            $staticText->$i18nField = Registry::getRegistry()->getTranslator()->getConfigFieldDefault($configField, $lang->language);
+        foreach (LanguageHelper::getLanguages() as $lang) {
+            $i18nField = 'text_' . $lang->lang_code;
+            $staticText->$i18nField = Registry::getRegistry()->getTranslator()->getConfigFieldDefault($configField, self::convertLangCodeToCmsgateFormat($lang->lang_code));
         }
         return Factory::getDbo()->insertObject('#__jshopping_config_statictext', $staticText);
     }
@@ -103,12 +101,17 @@ class InstallHelperJoomshopping extends InstallHelperJoomla
         $db = Factory::getDbo();
         $query = $db->getQuery(true);
         $conditions = array(
-            $db->quoteName('alias') . ' = ' . $db->quote($configField)
+            $db->quoteName('alias') . ' = ' . $db->quote(ConfigStorageJoomshopping::staticAliasName($configField))
         );
         $query->delete($db->quoteName('#__jshopping_config_statictext'));
         $query->where($conditions);
 
         $db->setQuery($query);
         return $db->execute();
+    }
+
+    public static function convertLangCodeToCmsgateFormat($joomlaFormat)
+    {
+        return str_replace("-", "_", strtolower($joomlaFormat));
     }
 }
